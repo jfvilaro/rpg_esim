@@ -76,6 +76,8 @@ void Simulator::publishData(const SimulatorData& sim_data,
   {
     for(const Publisher::Ptr& publisher : publishers_)
       publisher->eventsCallback(events);
+    /*for(const Publisher::Ptr& publisher : publishers_)
+      publisher->events2Callback(events);*/  
   }
   if(sim_data.poses_updated)
   {
@@ -124,13 +126,23 @@ void Simulator::publishData(const SimulatorData& sim_data,
   if(sim_data.depthmaps_updated && !events.empty())
   {
     PointCloudVector pointclouds(num_cameras_);
+    PointCloudVector pointclouds2(num_cameras_);
     for(size_t i=0; i<num_cameras_; ++i)
     {
       CHECK(sim_data.depthmaps[i]);
+      //pointclouds[i] = eventsToPointCloud(events[i], *sim_data.depthmaps[i], camera_rig->atShared(i));
       pointclouds[i] = eventsToPointCloud(events[i], *sim_data.depthmaps[i], camera_rig->atShared(i));
+      pointclouds2[i] = eventsToPointCloud2(T_W_Cs,events[i], *sim_data.depthmaps[i], camera_rig->atShared(i));
+ 
     }
     for(const Publisher::Ptr& publisher : publishers_)
       publisher->pointcloudCallback(pointclouds, time);
+    for(const Publisher::Ptr& publisher : publishers_)  
+      publisher->pointcloud2Callback(pointclouds2, time);
+
+    // Event (2D) and its 3D projection.  
+    for(const Publisher::Ptr& publisher : publishers_)  
+      publisher->pointcloudeventsCallback(events,pointclouds2, time);  
   }
 }
 

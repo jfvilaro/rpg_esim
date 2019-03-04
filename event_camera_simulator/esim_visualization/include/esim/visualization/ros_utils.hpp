@@ -5,6 +5,8 @@
 #include <pcl/point_types.h>
 #include <sensor_msgs/Image.h>
 #include <dvs_msgs/EventArray.h>
+#include <dvs_msgs/Event_PointCloud.h>
+#include <dvs_msgs/PointCloudEvent.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <sensor_msgs/Imu.h>
@@ -35,6 +37,10 @@ inline ros::Time toRosTime(Time t)
 }
 
 void pointCloudToMsg(const PointCloud& pointcloud, const std::string& frame_id, Time t,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& msg);
+
+//void pointCloudToMsg2(const PointCloud& pointcloud, const std::string& frame_id, Time t,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& msg);
+
+void pointCloudEventsToMsg(const Events& events,const PointCloud& pointcloud,Time t,dvs_msgs::PointCloudEventPtr& msg);
 
 void imageToMsg(const Image& image, Time t, sensor_msgs::ImagePtr& msg);
 

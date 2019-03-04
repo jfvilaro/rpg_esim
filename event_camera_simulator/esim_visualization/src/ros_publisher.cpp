@@ -50,6 +50,10 @@ RosPublisher::RosPublisher(size_t num_cameras)
           new ros::Publisher(
             nh_->advertise<dvs_msgs::EventArray> (getTopicName(i, "events"), 0)));
 
+    /*event_pub2_.emplace_back(
+          new ros::Publisher(
+            nh_->advertise<dvs_msgs::EventArray> (getTopicName(i, "events2"), 0)));        
+*/
     image_pub_.emplace_back(
           new image_transport::Publisher(
             it_->advertise(getTopicName(i, "image_raw"), 0)));
@@ -77,6 +81,16 @@ RosPublisher::RosPublisher(size_t num_cameras)
     pointcloud_pub_.emplace_back(
           new ros::Publisher(
             nh_->advertise<pcl::PointCloud<pcl::PointXYZ>> (getTopicName(i, "pointcloud"), 0)));
+    
+    pointcloud_pub2_.emplace_back(
+          new ros::Publisher(
+            nh_->advertise<pcl::PointCloud<pcl::PointXYZ>> (getTopicName(i, "pointcloud2"), 0)));
+
+    pointcloudevents_pub_.emplace_back(
+         new ros::Publisher(
+            nh_->advertise<dvs_msgs::PointCloudEvent> ("/pointcloudevent", 0)));     
+             //nh_->advertise<dvs_msgs::Event_PointCloud> ("/pointcloudevent", 0)));    
+    
   }
 
   pose_pub_.reset(new ros::Publisher(nh_->advertise<geometry_msgs::PoseStamped> ("pose", 0)));
@@ -89,6 +103,7 @@ RosPublisher::RosPublisher(size_t num_cameras)
   last_published_depthmap_time_ = 0;
   last_published_optic_flow_time_ = 0;
   last_published_pointcloud_time_ = 0;
+  last_published_pointcloudevent_time_=0;
 }
 
 RosPublisher::~RosPublisher()
@@ -96,6 +111,7 @@ RosPublisher::~RosPublisher()
   for(size_t i=0; i<num_cameras_; ++i)
   {
     event_pub_[i]->shutdown();
+    //event_pub2_[i]->shutdown();
     image_pub_[i]->shutdown();
     image_corrupted_pub_[i]->shutdown();
     depthmap_pub_[i]->shutdown();
@@ -103,6 +119,8 @@ RosPublisher::~RosPublisher()
     camera_info_pub_[i]->shutdown();
     twist_pub_[i]->shutdown();
     pointcloud_pub_[i]->shutdown();
+    pointcloud_pub2_[i]->shutdown();
+    pointcloudevents_pub_[i]->shutdown();
   }
   pose_pub_->shutdown();
 
@@ -123,13 +141,14 @@ void RosPublisher::pointcloudCallback(const PointCloudVector& pointclouds, Time 
     {
       continue;
     }
-
+    /*
     Duration min_time_interval_between_published_pointclouds_
         = ze::secToNanosec(1.0 / FLAGS_ros_publisher_pointcloud_rate);
     if(last_published_pointcloud_time_ > 0 && t - last_published_pointcloud_time_ < min_time_interval_between_published_pointclouds_)
     {
       return;
     }
+    */
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr msg (new pcl::PointCloud<pcl::PointXYZRGB>);
     std::stringstream ss; ss << "cam" << i;
@@ -139,6 +158,67 @@ void RosPublisher::pointcloudCallback(const PointCloudVector& pointclouds, Time 
 
   last_published_pointcloud_time_ = t;
 }
+
+void RosPublisher::pointcloud2Callback(const PointCloudVector& pointclouds, Time t)
+{
+  CHECK_EQ(pointcloud_pub2_.size(), num_cameras_);
+  CHECK_EQ(pointclouds.size(), num_cameras_);
+
+  for(size_t i=0; i<num_cameras_; ++i)
+  {
+    const PointCloud& pcl_camera = pointclouds[i];
+
+    CHECK(pointcloud_pub2_[i]);
+    /*if(pointcloud_pub2_[i]->getNumSubscribers() == 0)
+    {
+      continue;
+    }
+    */
+
+    /*Duration min_time_interval_between_published_pointclouds_
+        = ze::secToNanosec(1.0 / FLAGS_ros_publisher_pointcloud_rate);
+    if(last_published_pointcloud_time_ > 0 && t - last_published_pointcloud_time_ < min_time_interval_between_published_pointclouds_)
+    {
+      return;
+    }
+   */
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr msg (new pcl::PointCloud<pcl::PointXYZRGB>);
+    std::stringstream ss; ss << "map";
+    pointCloudToMsg(pointclouds[i], ss.str(), t, msg);
+    pointcloud_pub2_[i]->publish(msg);
+  }
+
+  last_published_pointcloud_time_ = t;
+}
+
+void RosPublisher::pointcloudeventsCallback(const EventsVector& events,const PointCloudVector& pointclouds, Time t)
+{
+  CHECK_EQ(pointcloudevents_pub_.size(), num_cameras_);
+  CHECK_EQ(pointclouds.size(), num_cameras_);
+
+  for(size_t i=0; i<num_cameras_; ++i)
+  {
+    //const PointCloud& pcl_camera = pointclouds[i];
+
+    CHECK(pointcloudevents_pub_[i]);
+    /*if(pointcloudevents_pub_[i]->getNumSubscribers() == 0)
+    {
+      continue;
+    }
+    */
+
+    //dvs_msgs::Event_PointCloudPtr msg;
+    //msg.reset(new dvs_msgs::Event_PointCloud);
+
+    dvs_msgs::PointCloudEventPtr msg;
+    msg.reset(new dvs_msgs::PointCloudEvent);
+    pointCloudEventsToMsg(events[i],pointclouds[i],t,msg);
+    pointcloudevents_pub_[i]->publish(msg);
+  }
+
+  last_published_pointcloudevent_time_ = t;
+}
+
 
 void RosPublisher::imageCallback(const ImagePtrVector& images, Time t)
 {
@@ -213,14 +293,14 @@ void RosPublisher::depthmapCallback(const DepthmapPtrVector& depthmaps, Time t)
     {
       continue;
     }
-
+    /*
     static const Duration min_time_interval_between_published_depthmaps_
         = ze::secToNanosec(1.0 / FLAGS_ros_publisher_depth_rate);
     if(last_published_depthmap_time_ > 0 && t - last_published_depthmap_time_ < min_time_interval_between_published_depthmaps_)
     {
       return;
     }
-
+    */
     if(depthmaps[i])
     {
       sensor_msgs::ImagePtr msg;
@@ -293,6 +373,35 @@ void RosPublisher::eventsCallback(const EventsVector& events)
   }
 }
 
+/*void RosPublisher::events2Callback(const EventsVector& events)
+{
+  CHECK_EQ(event_pub2_.size(), num_cameras_);
+
+  for(size_t i=0; i<num_cameras_; ++i)
+  {
+    if(sensor_sizes_[i].width == 0 || sensor_sizes_[i].height == 0)
+    {
+      continue;
+    }
+
+    if(events[i].empty())
+    {
+      continue;
+    }
+
+    CHECK(event_pub2_[i]);
+    if(event_pub2_[i]->getNumSubscribers() == 0)
+    {
+      continue;
+    }
+
+    dvs_msgs::EventArrayPtr msg;
+    msg.reset(new dvs_msgs::EventArray);
+    eventsToMsg(events[i], sensor_sizes_[i].width, sensor_sizes_[i].height, msg);
+    event_pub2_[i]->publish(msg);
+  }
+}
+*/
 void RosPublisher::poseCallback(const Transformation& T_W_B,
                                 const TransformationVector& T_W_Cs,
                                 Time t)

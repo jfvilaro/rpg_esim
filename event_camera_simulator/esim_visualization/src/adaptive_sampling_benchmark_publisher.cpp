@@ -24,6 +24,9 @@ AdaptiveSamplingBenchmarkPublisher::AdaptiveSamplingBenchmarkPublisher(const std
   ze::openOutputFileStream(ze::joinPath(benchmark_folder, "events.txt"),
                            &events_file_);
 
+ // ze::openOutputFileStream(ze::joinPath(benchmark_folder, "events2.txt"),
+ //                          &events2_file_);
+
   ze::openOutputFileStream(ze::joinPath(benchmark_folder, "images.txt"),
                            &images_file_);
 
@@ -66,6 +69,7 @@ AdaptiveSamplingBenchmarkPublisher::~AdaptiveSamplingBenchmarkPublisher()
 {
   // finish writing files
   events_file_.close();
+  //events2_file_.close();
   images_file_.close();
   pixel_intensities_file_.close();
   optic_flows_file_.close();
@@ -132,4 +136,14 @@ void AdaptiveSamplingBenchmarkPublisher::eventsCallback(const EventsVector& even
   }
 }
 
+/*void AdaptiveSamplingBenchmarkPublisher::events2Callback(const EventsVector& events)
+{
+  CHECK_EQ(events.size(), 1);
+
+  for(const Event& e : events[0])
+  {
+     events2_file_ << e.t << " " << e.x << " " << e.y << " " << (e.pol? 1 : 0) << std::endl;
+  }
+}
+*/
 } // namespace event_camera_simulator

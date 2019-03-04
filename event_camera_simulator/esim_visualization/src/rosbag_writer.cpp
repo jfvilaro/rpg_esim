@@ -44,6 +44,7 @@ RosbagWriter::RosbagWriter(const std::string& path_to_output_bag, size_t num_cam
   last_published_depthmap_time_ = 0;
   last_published_optic_flow_time_ = 0;
   last_published_pointcloud_time_ = 0;
+  last_published_pointcloudevent_time_=0;
 }
 
 Publisher::Ptr RosbagWriter::createBagWriterFromGflags(size_t num_cameras)
@@ -85,6 +86,52 @@ void RosbagWriter::pointcloudCallback(const PointCloudVector& pointclouds, Time 
   }
   last_published_pointcloud_time_ = t;
 }
+
+void RosbagWriter::pointcloud2Callback(const PointCloudVector& pointclouds, Time t)
+{
+  CHECK_EQ(pointclouds.size(), num_cameras_);
+
+  for(size_t i=0; i<num_cameras_; ++i)
+  {
+    Duration min_time_interval_between_published_pointclouds_
+        = ze::secToNanosec(1.0 / FLAGS_ros_publisher_pointcloud_rate);
+    if(last_published_pointcloud_time_ > 0 && t - last_published_pointcloud_time_ < min_time_interval_between_published_pointclouds_)
+    {
+      return;
+    }
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr msg (new pcl::PointCloud<pcl::PointXYZRGB>);
+    std::stringstream ss; ss << "map";
+    pointCloudToMsg(pointclouds[i], ss.str(), t, msg);
+    bag_.write(getTopicName(topic_name_prefix_, i, "pointcloud2"),
+               toRosTime(t), msg);
+  }
+  last_published_pointcloud_time_ = t;
+}
+
+
+void RosbagWriter::pointcloudeventsCallback(const EventsVector& events,const PointCloudVector& pointclouds, Time t)
+{
+  CHECK_EQ(pointclouds.size(), num_cameras_);
+
+  for(size_t i=0; i<num_cameras_; ++i)
+  {
+    /*Duration min_time_interval_between_published_pointclouds_
+        = ze::secToNanosec(1.0 / FLAGS_ros_publisher_pointcloud_rate);
+    if(last_published_pointcloudevent_time_ > 0 && t - last_published_pointcloudevent_time_ < min_time_interval_between_published_pointclouds_)
+    {
+      return;
+    }*/
+    //dvs_msgs::Event_PointCloudPtr msg;
+    //msg.reset(new dvs_msgs::Event_PointCloud);
+    dvs_msgs::PointCloudEventPtr msg;
+    msg.reset(new dvs_msgs::PointCloudEvent);
+    pointCloudEventsToMsg(events[i],pointclouds[i],t,msg);
+    bag_.write("pointcloudevent",toRosTime(t), msg);
+  }
+  last_published_pointcloudevent_time_ = t;
+}
+
 
 void RosbagWriter::imageCallback(const ImagePtrVector& images, Time t)
 {
@@ -212,7 +259,29 @@ void RosbagWriter::eventsCallback(const EventsVector& events)
                msg->header.stamp, msg);
   }
 }
+/*void RosbagWriter::events2Callback(const EventsVector& events)
+{
+  for(size_t i=0; i<num_cameras_; ++i)
+  {
+    if(sensor_sizes_[i].width == 0 || sensor_sizes_[i].height == 0)
+    {
+      continue;
+    }
 
+    if(events[i].empty())
+    {
+      continue;
+    }
+
+    dvs_msgs::EventArrayPtr msg;
+    msg.reset(new dvs_msgs::EventArray);
+    eventsToMsg(events[i], sensor_sizes_[i].width, sensor_sizes_[i].height, msg);
+
+    bag_.write(getTopicName(topic_name_prefix_, i, "events2"),
+               msg->header.stamp, msg);
+  }
+}
+*/
 void RosbagWriter::poseCallback(const Transformation& T_W_B,
                                 const TransformationVector& T_W_Cs,
                                 Time t)

@@ -25,6 +25,54 @@ void pointCloudToMsg(const PointCloud& pointcloud, const std::string& frame_id, 
 
   pcl_conversions::toPCL(toRosTime(t), msg->header.stamp);
 }
+/*
+void pointCloudToMsg2(const PointCloud& pointcloud, const std::string& frame_id, Time t, pcl::PointCloud<pcl::PointXYZRGB>::Ptr& msg)
+{
+  CHECK(msg);
+  msg->header.frame_id = frame_id;
+  msg->height = pointcloud.size();
+  msg->width = 1;
+  for(auto& p_c : pointcloud)
+  {
+    pcl::PointXYZRGB p;
+    p.x = p_c.xyz(0);
+    p.y = p_c.xyz(1);
+    p.z = p_c.xyz(2);
+    p.r = p_c.rgb(0);
+    p.g = p_c.rgb(1);
+    p.b = p_c.rgb(2);
+
+    msg->points.push_back(p);
+  }
+
+  pcl_conversions::toPCL(toRosTime(t), msg->header.stamp);
+}
+*/
+void pointCloudEventsToMsg(const Events& events,const PointCloud& pointcloud,Time t,dvs_msgs::PointCloudEventPtr& msg)
+{
+  CHECK(msg);
+  
+  std::vector<dvs_msgs::Event_PointCloud> events_list;
+  
+ 
+  for(const PointXYZRGB& p_c : pointcloud)
+  {
+    dvs_msgs::Event_PointCloud ev;
+    ev.x = p_c.x;
+    ev.y = p_c.y;
+    ev.ts = toRosTime(p_c.t);
+    ev.polarity = p_c.pol;
+    ev.id = p_c.id;
+    ev.x_pc = p_c.xyz(0);
+    ev.y_pc = p_c.xyz(1);
+    ev.z_pc = p_c.xyz(2);
+
+    events_list.push_back(ev);
+  }
+
+  msg->events_pc = events_list;
+
+}
 
 void imageToMsg(const Image& image, Time t, sensor_msgs::ImagePtr& msg)
 {
@@ -162,12 +210,7 @@ void cameraToMsg(const ze::Camera::Ptr& camera, Time t, sensor_msgs::CameraInfoP
 
   msg->K = K_vec;
   msg->D = D_vec;
-  msg->P = {K(0,0), 0,      K(0,2), 0,
-            0,      K(1,1), K(1,2), 0,
-            0,      0,      1,      0};
-  msg->R = {1, 0, 0,
-            0, 1, 0,
-            0, 0, 1};
+  // TODO: Add R and P
 }
 
 

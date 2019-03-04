@@ -18,11 +18,14 @@ public:
   virtual void depthmapCallback(const DepthmapPtrVector& depthmaps, Time t) override;
   virtual void opticFlowCallback(const OpticFlowPtrVector& optic_flows, Time t) override;
   virtual void eventsCallback(const EventsVector& events) override;
+ // virtual void events2Callback(const EventsVector& events) override;
   virtual void poseCallback(const Transformation& T_W_B, const TransformationVector& T_W_Cs, Time t) override;
   virtual void twistCallback(const AngularVelocityVector& ws, const LinearVelocityVector& vs, Time t) override;
   virtual void imuCallback(const Vector3& acc, const Vector3& gyr, Time t) override;
   virtual void cameraInfoCallback(const ze::CameraRig::Ptr& camera_rig, Time t) override;
   virtual void pointcloudCallback(const PointCloudVector& pointclouds, Time t) override;
+  virtual void pointcloud2Callback(const PointCloudVector& pointclouds, Time t) override;
+  virtual void pointcloudeventsCallback(const EventsVector& events,const PointCloudVector& pointclouds, Time t) override;
 
   static Publisher::Ptr createBagWriterFromGflags(size_t num_cameras);
 
@@ -39,6 +42,7 @@ private:
   Time last_published_depthmap_time_;
   Time last_published_optic_flow_time_;
   Time last_published_pointcloud_time_;
+  Time last_published_pointcloudevent_time_;
 
 };
 

@@ -23,6 +23,7 @@ public:
   }
 
   virtual void eventsCallback(const EventsVector& events) override;
+  //virtual void events2Callback(const EventsVector& events) override;
   virtual void opticFlowCallback(const OpticFlowPtrVector& optic_flows, Time t)  override {}
 
   virtual void imageCorruptedCallback(const ImagePtrVector& corrupted_images, Time t) override {}
@@ -32,6 +33,8 @@ public:
   virtual void imuCallback(const Vector3& acc, const Vector3& gyr, Time t) override {}
   virtual void cameraInfoCallback(const ze::CameraRig::Ptr& camera_rig, Time t) override {}
   virtual void pointcloudCallback(const PointCloudVector& pointclouds, Time t) override {}
+  virtual void pointcloud2Callback(const PointCloudVector& pointclouds, Time t) override {}
+  virtual void pointcloudeventsCallback(const EventsVector& events,const PointCloudVector& pointclouds, Time t) override {}
 
   static Publisher::Ptr createFromGflags();
 

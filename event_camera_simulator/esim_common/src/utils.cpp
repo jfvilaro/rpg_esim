@@ -2,6 +2,9 @@
 #include <ze/cameras/camera_models.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <iostream>
+using namespace std;
+
 namespace event_camera_simulator {
 
 OpticFlowHelper::OpticFlowHelper(const ze::Camera::Ptr& camera)
@@ -181,8 +184,59 @@ PointCloud eventsToPointCloud(const Events& events, const Depthmap& depthmap, co
     static const Vector3i red(255, 0, 0);
     static const Vector3i blue(0, 0, 255);
     rgb = (ev.pol) ? blue : red;
-    PointXYZRGB P_c_intensity(P_c, rgb);
+    PointXYZRGB P_c_intensity(P_c,rgb,ev.x,ev.y,ev.t,ev.pol,ev.id);
     pcl_camera.push_back(P_c_intensity);
+    
+    /*
+    //Print event 2D and 3D info"
+    cout << "pc info. id: " << P_c_intensity.id << ", coord [" <<P_c_intensity.xyz <<"]"<< endl;
+    cout << "event info. id: " << ev.id << ", coord [" << P_c_intensity.x << "," << ev.y <<"], ts :" << P_c_intensity.t <<", pol:"<<ev.pol<< endl;
+    */
+  }
+  return pcl_camera;
+}
+
+PointCloud eventsToPointCloud2(const TransformationVector& T_W_Cs, const Events& events, const Depthmap& depthmap, const ze::Camera::Ptr& camera)
+{
+  PointCloud pcl_camera;
+  for(const Event& ev : events)
+  {
+
+    /*
+    //pint Transformation Matrix info
+    cout<<"Inverse Transformation matrix [R t]: "<<T_W_Cs[0].inverse()<< endl;
+    cout<<"Translation [t]: "<<T_W_Cs[0].getPosition()<< endl;
+    cout<<"Rotation [t]: "<<T_W_Cs[0].getRotation()<< endl;
+    cout<<"Transformation matrix [R t]: "<<T_W_Cs[0].getTransformationMatrix()<< endl;
+    */
+    Vector3 X_c = camera->backProject(ze::Keypoint(ev.x,ev.y));
+    X_c[0] /= X_c[2];
+    X_c[1] /= X_c[2];
+    X_c[2] = 1.;
+    const ImageFloatType z = depthmap(ev.y,ev.x);
+    Vector3 P_c = z * X_c;
+    
+    // Transform P_c to abslout position --> P_c_abs
+    Vector3 P_c_abs=T_W_Cs[0].transform(P_c); //point cloud position with respect the map frame
+    
+    //Print realtive and absolute poistion
+    /*cout<<"Point: "<<P_c<< endl;
+    cout<<"Point abs: "<<P_c_abs<< endl;
+    */
+    
+    Vector3i rgb;
+    static const Vector3i red(255, 0, 0);
+    static const Vector3i blue(0, 0, 255);
+    rgb = (ev.pol) ? blue : red;
+    PointXYZRGB P_c_intensity(P_c_abs,rgb,ev.x,ev.y,ev.t,ev.pol,ev.id);// Use P_c_abs instead of P_c (JF)
+    //PointXYZRGB P_c_intensity(P_c,rgb,ev.x,ev.y,ev.t,ev.pol,ev.id);
+    pcl_camera.push_back(P_c_intensity);
+    
+    //Print event 2D and 3D info"
+    /*
+    cout << "pc info. id: " << P_c_intensity.id << ", coord [" <<P_c_intensity.xyz <<"]"<< endl;
+    cout << "event info. id: " << ev.id << ", coord [" << P_c_intensity.x << "," << ev.y <<"], ts :" << P_c_intensity.t <<", pol:"<<ev.pol<< endl;
+    */  
   }
   return pcl_camera;
 }

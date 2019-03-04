@@ -19,8 +19,10 @@ inline double hfovToFocalLength(double hfov_deg, int W)
 }
 
 CalibrationMatrix calibrationMatrixFromCamera(const Camera::Ptr& camera);
-
+// EventsToPointCloud function that returns the pointcloud position relative to the camera frame.
 PointCloud eventsToPointCloud(const Events& events, const Depthmap& depthmap, const ze::Camera::Ptr& camera);
+// Add eventsToPointCloud function that returns the pointcloud position in absolute coordinates (JF)
+PointCloud eventsToPointCloud2(const TransformationVector& T_W_Cs, const Events& events, const Depthmap& depthmap, const ze::Camera::Ptr& camera);
 
 FloatType maxMagnitudeOpticFlow(const OpticFlowPtr& flow);
 
