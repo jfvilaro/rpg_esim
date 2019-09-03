@@ -7,7 +7,8 @@
     --v=1
     --vmodule=data_provider_from_folder=10
     --flagfile=$(find esim_ros)/$(arg config)
-    " output="screen"/>
+    " output="screen"
+    required="true"/>
 
   <include file="$(find esim_ros)/launch/visualization.launch" />
 
