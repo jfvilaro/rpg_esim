@@ -78,8 +78,8 @@ Events EventSimulator::imageCallback(const Image& img, Time time)
             CHECK_GE(t, last_stamp_at_xy);
             const Duration dt = t - last_stamp_at_xy;
             if(last_event_timestamp_(y,x) == 0 || dt >= config_.refractory_period_ns)
-            { ++id;
-              events.push_back(Event(x, y, t, pol > 0,id));
+            { 
+              events.push_back(Event(x, y, t, pol > 0));
               last_event_timestamp_(y,x) = ze::nanosecToSecTrunc(t);
             }
             else
@@ -110,7 +110,6 @@ Events EventSimulator::imageCallback(const Image& img, Time time)
   {
     return a.t < b.t;
   });
-  
   return events;
 }
 

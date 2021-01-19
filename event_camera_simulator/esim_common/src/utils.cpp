@@ -184,7 +184,7 @@ PointCloud eventsToPointCloud(const Events& events, const Depthmap& depthmap, co
     static const Vector3i red(255, 0, 0);
     static const Vector3i blue(0, 0, 255);
     rgb = (ev.pol) ? blue : red;
-    PointXYZRGB P_c_intensity(P_c,rgb,ev.x,ev.y,ev.t,ev.pol,ev.id);
+    PointXYZRGB P_c_intensity(P_c,rgb,ev.x,ev.y,ev.t,ev.pol);
     pcl_camera.push_back(P_c_intensity);
     
     /*
@@ -228,7 +228,7 @@ PointCloud eventsToPointCloud2(const TransformationVector& T_W_Cs, const Events&
     static const Vector3i red(255, 0, 0);
     static const Vector3i blue(0, 0, 255);
     rgb = (ev.pol) ? blue : red;
-    PointXYZRGB P_c_intensity(P_c_abs,rgb,ev.x,ev.y,ev.t,ev.pol,ev.id);// Use P_c_abs instead of P_c (JF)
+    PointXYZRGB P_c_intensity(P_c_abs,rgb,ev.x,ev.y,ev.t,ev.pol);// Use P_c_abs instead of P_c (JF)
     //PointXYZRGB P_c_intensity(P_c,rgb,ev.x,ev.y,ev.t,ev.pol,ev.id);
     pcl_camera.push_back(P_c_intensity);
     

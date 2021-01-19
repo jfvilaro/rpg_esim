@@ -55,12 +55,11 @@ using Camera = ze::Camera;
 
 struct Event
 {
-  Event(uint16_t x, uint16_t y, Time t, bool pol, uint64_t id)
+  Event(uint16_t x, uint16_t y, Time t, bool pol)
     : x(x),
       y(y),
       t(t),
-      pol(pol),
-      id(id)
+      pol(pol)
   {
 
   }
@@ -69,7 +68,6 @@ struct Event
   uint16_t y;
   Time t;
   bool pol;
-  uint64_t id; //Give id information to each event
 };
 
 using Events = std::vector<Event>;
@@ -78,15 +76,14 @@ using EventsPtr = std::shared_ptr<Events>;
 
 struct Event_PC
 {
-  Event_PC(uint16_t x, uint16_t y, float x_pc, float y_pc, float z_pc, Time ts, bool polarity, uint64_t id)
+  Event_PC(uint16_t x, uint16_t y, float x_pc, float y_pc, float z_pc, Time ts, bool polarity)
     : x(x),
       y(y),
       x_pc(x_pc),
       y_pc(y_pc),
       z_pc(z_pc),
       ts(ts),
-      polarity(polarity),
-      id(id)
+      polarity(polarity)
   {
 
   }
@@ -98,7 +95,6 @@ struct Event_PC
   float z_pc;
   Time ts;
   bool polarity;
-  uint64_t id;
 };
 
 using Events_PC = std::vector<Event_PC>;
@@ -119,24 +115,12 @@ struct PointXYZRGB
     : xyz(xyz),
       rgb(rgb) {}
 
-  PointXYZRGB(FloatType x, FloatType y, FloatType z,
-              int red, int green, int blue, uint64_t id)
-    : xyz(x, y, z),
-      id(id),
-      rgb(red, green, blue) {}
-
-  PointXYZRGB(const Vector3& xyz, const Vector3i& rgb,uint64_t id)
-    : xyz(xyz),
-      id(id),
-      rgb(rgb) {}
-
-  PointXYZRGB(const Vector3& xyz, const Vector3i& rgb,uint16_t x, uint16_t y, Time t, bool pol, uint64_t id)
+  PointXYZRGB(const Vector3& xyz, const Vector3i& rgb,uint16_t x, uint16_t y, Time t, bool pol)
     : xyz(xyz),
       x(x),
       y(y),
       t(t),
       pol(pol),
-      id(id),
       rgb(rgb) {}
       
 
@@ -147,7 +131,6 @@ struct PointXYZRGB
   uint16_t y;
   Time t;//time stamp of the event (JF)
   bool pol;//Event polarity (JF)
-  uint64_t id;//Event id (JF)
 };
 
 using PointCloud = std::vector<PointXYZRGB>;

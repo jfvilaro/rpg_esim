@@ -62,7 +62,6 @@ void pointCloudEventsToMsg(const Events& events,const PointCloud& pointcloud,Tim
     ev.y = p_c.y;
     ev.ts = toRosTime(p_c.t);
     ev.polarity = p_c.pol;
-    ev.id = p_c.id;
     ev.x_pc = p_c.xyz(0);
     ev.y_pc = p_c.xyz(1);
     ev.z_pc = p_c.xyz(2);

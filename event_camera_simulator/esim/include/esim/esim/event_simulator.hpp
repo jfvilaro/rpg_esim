@@ -29,7 +29,6 @@ public:
     double log_eps;
   };
 
-  uint64_t id=0;
 
   using TimestampImage = cv::Mat_<ze::real_t>;
 
